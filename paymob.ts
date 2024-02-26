@@ -1,7 +1,12 @@
 import axios, { AxiosHeaders, AxiosRequestConfig } from 'axios';
 import 'dotenv/config';
 const API_KEY = process.env.API_KEY;
-const PAYMENT_INTEGRATION_ID = Number(process.env.PAYMENT_INTEGRATION_ID);
+const CARD_PAYMENT_INTEGRATION_ID = Number(
+    process.env.CARD_PAYMENT_INTEGRATION_ID
+);
+const WALLET_PAYMENT_INTEGRATION_ID = Number(
+    process.env.WALLET_PAYMENT_INTEGRATION_ID
+);
 
 class PaymobPayment {
     constructor(
@@ -135,8 +140,10 @@ class PaymobMobileWalletPayment extends PaymobPayment {
         };
         try {
             const res = await axios.post(url, requestData, requestConfig);
-            const { success, pending, redirection_url: redirectUrl } = res.data;
-            console.log({ success }, { pending });
+            console.log(res.data);
+            // NOTE: if the integration id is working, it's called redirect_url, if not, it's called redirection_url
+            const { success, pending, redirect_url: redirectUrl } = res.data;
+            console.log({ success }, { pending }, { redirectUrl });
             // check for success?
             return redirectUrl;
         } catch (error) {
@@ -151,7 +158,7 @@ async function payWithCard() {
     const paymobCardPayment = new PaymobCardPayment(
         20,
         'EGP',
-        PAYMENT_INTEGRATION_ID
+        CARD_PAYMENT_INTEGRATION_ID
     );
     const paymentToken = await paymobCardPayment.initPayment();
     const IframeUrl = paymobCardPayment.getPaymentIFrameUrl(paymentToken);
@@ -162,10 +169,12 @@ async function payWilMobileWallet() {
     const paymobWalletPayment = new PaymobMobileWalletPayment(
         30,
         'EGP',
-        PAYMENT_INTEGRATION_ID,
+        WALLET_PAYMENT_INTEGRATION_ID,
         '01010101010'
     );
     const paymentToken = await paymobWalletPayment.initPayment();
     const redirect_url = await paymobWalletPayment.getRedirectUrl(paymentToken);
     console.log(redirect_url);
 }
+payWilMobileWallet();
+console.log(WALLET_PAYMENT_INTEGRATION_ID);
